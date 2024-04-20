@@ -11,41 +11,34 @@ import (
 )
 
 func TestMainHandlerWhenCorrectRequest(t *testing.T) {
-	errCode := http.StatusOK
 	req := httptest.NewRequest("GET", "/cafe?count=1&city=moscow", nil) // здесь нужно создать запрос к сервису
 
 	responseRecorder := httptest.NewRecorder()
 	handler := http.HandlerFunc(mainHandle)
 	handler.ServeHTTP(responseRecorder, req)
 
-	body := responseRecorder.Body.String()
-	statusCode := responseRecorder.Code
-
-	require.Equal(t, errCode, statusCode)
-	assert.NotEmpty(t, body)
+	require.Equal(t, http.StatusOK, responseRecorder.Code)
+	assert.NotEmpty(t, responseRecorder.Body)
 
 }
 
 func TestMainHandlerWhenCityDoesntSupport(t *testing.T) {
-	errText := "wrong city value"
-	errCode := http.StatusBadRequest
 	req := httptest.NewRequest("GET", "/cafe?count=10&city=tula", nil) // здесь нужно создать запрос к сервису
 
 	responseRecorder := httptest.NewRecorder()
 	handler := http.HandlerFunc(mainHandle)
 	handler.ServeHTTP(responseRecorder, req)
 
+	errText := "wrong city value"
 	body := responseRecorder.Body.String()
-	statusCode := responseRecorder.Code
 
 	// здесь нужно добавить необходимые проверки
-	assert.Equal(t, errCode, statusCode)
+	require.Equal(t, http.StatusBadRequest, responseRecorder.Code)
 	assert.Equal(t, errText, body)
 
 }
 
 func TestMainHandlerWhenCountMoreThanTotal(t *testing.T) {
-	totalCount := 4
 	req := httptest.NewRequest("GET", "/cafe?count=10&city=moscow", nil) // здесь нужно создать запрос к сервису
 
 	responseRecorder := httptest.NewRecorder()
@@ -54,7 +47,9 @@ func TestMainHandlerWhenCountMoreThanTotal(t *testing.T) {
 
 	body := responseRecorder.Body.String()
 	list := strings.Split(body, ",")
+	totalCount := 4
 
 	// здесь нужно добавить необходимые проверки
+	require.Equal(t, http.StatusOK, responseRecorder.Code)
 	assert.Len(t, list, totalCount)
 }
